@@ -34,7 +34,11 @@
 
             <div class="col-md-6">
                 <label for="forma_pagamento" class="form-label">Forma de Pagamento</label>
-                <input type="text" name="forma_pagamento" id="forma_pagamento" class="form-control" required>
+                <select name="forma_pagamento" id="forma_pagamento" class="form-select" required>
+                    <option value="">Selecione</option>
+                    <option value="Cartão">Cartão</option>
+                    <option value="À Vista">À Vista</option>
+                </select>
             </div>
         </div>
 
@@ -67,43 +71,66 @@
                 </tr>
             </tbody>
         </table>
+
         <button type="button" class="btn btn-outline-primary btn-sm mb-3" id="add-produto">+ Adicionar Produto</button>
 
-        <div class="mb-3">
+        <div class="mb-3" id="parcelas-group">
             <label for="parcelas" class="form-label">Número de Parcelas</label>
             <input type="number" name="parcelas" id="parcelas" class="form-control" min="1" value="1" required>
         </div>
 
-        <button type="submit" class="btn btn-success">Salvar Venda</button>
+        <div class="d-flex justify-content-between mt-4">
+            <a href="{{ route('vendas.index') }}" class="btn btn-secondary">Cancelar</a>
+            <button type="submit" class="btn btn-success">Salvar Venda</button>
+        </div>
     </form>
+
+    <!-- Produto select template escondido -->
+    <template id="produto-select-template">
+        <select name="produtos[]" class="form-select">
+            @foreach($produtos as $produto)
+                <option value="{{ $produto->id }}">{{ $produto->nome }} (R$ {{ number_format($produto->preco, 2, ',', '.') }})</option>
+            @endforeach
+        </select>
+    </template>
 </div>
 @endsection
 
 @section('scripts')
 <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
 <script>
-    $('#add-produto').on('click', function () {
-        const linha = `
-        <tr>
-            <td>
-                <select name="produtos[]" class="form-select">
-                    @foreach($produtos as $produto)
-                        <option value="{{ $produto->id }}">{{ $produto->nome }} (R$ {{ number_format($produto->preco, 2, ',', '.') }})</option>
-                    @endforeach
-                </select>
-            </td>
-            <td>
-                <input type="number" name="quantidades[]" class="form-control" min="1" value="1">
-            </td>
-            <td>
-                <button type="button" class="btn btn-danger btn-sm remove-produto">Remover</button>
-            </td>
-        </tr>`;
-        $('#produtos-table tbody').append(linha);
-    });
+    $(document).ready(function () {
+        // Controla exibição de parcelas
+        function toggleParcelas() {
+            const valor = $('#forma_pagamento').val();
+            if (valor === 'À Vista') {
+                $('#parcelas-group').hide();
+                $('#parcelas').val(1);
+            } else {
+                $('#parcelas-group').show();
+            }
+        }
 
-    $(document).on('click', '.remove-produto', function () {
-        $(this).closest('tr').remove();
+        $('#forma_pagamento').on('change', toggleParcelas);
+        toggleParcelas();
+
+        // Adicionar nova linha de produto
+        $('#add-produto').on('click', function () {
+            const selectHtml = $('#produto-select-template').html();
+            const linha = `
+                <tr>
+                    <td>${selectHtml}</td>
+                    <td><input type="number" name="quantidades[]" class="form-control" min="1" value="1"></td>
+                    <td><button type="button" class="btn btn-danger btn-sm remove-produto">Remover</button></td>
+                </tr>
+            `;
+            $('#produtos-table tbody').append(linha);
+        });
+
+        // Remover linha de produto
+        $(document).on('click', '.remove-produto', function () {
+            $(this).closest('tr').remove();
+        });
     });
 </script>
 @endsection

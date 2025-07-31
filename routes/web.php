@@ -1,29 +1,28 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\VendaController;
+use App\Http\Controllers\ProfileController;
 
-// Redireciona a home para a criação de vendas
+// Página inicial redireciona para a lista de vendas (ou crie nova venda se preferir)
 Route::get('/', function () {
-    return redirect()->route('vendas.create');
+    return redirect()->route('vendas.index'); // ou 'vendas.create'
 });
 
-// Dashboard padrão do Breeze
+// Dashboard
 Route::get('/dashboard', function () {
     return view('dashboard');
 })->middleware(['auth', 'verified'])->name('dashboard');
 
-// Rotas de perfil (padrão do Breeze)
+// Perfil do usuário
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 });
 
-// Rotas protegidas de vendas
+
 Route::middleware(['auth'])->group(function () {
-    Route::get('/vendas/{id}/pdf', [VendaController::class, 'pdf'])->name('vendas.pdf');
     Route::get('/vendas', [VendaController::class, 'index'])->name('vendas.index');
     Route::get('/vendas/create', [VendaController::class, 'create'])->name('vendas.create');
     Route::post('/vendas', [VendaController::class, 'store'])->name('vendas.store');
@@ -31,7 +30,8 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/vendas/{id}/edit', [VendaController::class, 'edit'])->name('vendas.edit');
     Route::put('/vendas/{id}', [VendaController::class, 'update'])->name('vendas.update');
     Route::delete('/vendas/{id}', [VendaController::class, 'destroy'])->name('vendas.destroy');
+    Route::get('/vendas/{id}/pdf', [VendaController::class, 'pdf'])->name('vendas.pdf');
 });
 
-// Rotas de autenticação geradas pelo Breeze
+// Rotas de autenticação
 require __DIR__.'/auth.php';
